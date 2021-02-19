@@ -46,6 +46,10 @@ app.get('/dashboard', (req, res)=>{
         res.redirect('/login')
         return
     }
+    if(files.files[user]==undefined){
+        files.files[user]=[]
+        writeFile('./data/files.json', JSON.stringify(files), ()=>{})
+    }
     const userFiles=files.files[user]
     res.render('dashboard', {folders: userFiles.folders, files: userFiles.files, sessid: sessid})
 })
