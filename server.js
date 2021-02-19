@@ -47,11 +47,11 @@ app.get('/dashboard', (req, res)=>{
         return
     }
     if(files.files[user]==undefined){
-        files.files[user]=[]
+        files.files[user]={files: []}
         writeFile('./data/files.json', JSON.stringify(files), ()=>{})
     }
     const userFiles=files.files[user]
-    res.render('dashboard', {folders: userFiles.folders, files: userFiles.files, sessid: sessid})
+    res.render('dashboard', {files: userFiles.files, sessid: sessid})
 })
 
 app.get('/user/register', async (req, res)=>{
