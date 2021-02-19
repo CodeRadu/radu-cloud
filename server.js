@@ -101,6 +101,7 @@ app.post('/upload', (req, res)=>{
             let file=req.files.file
             const user=users.sessid.find(sess=>sess.sessid==req.query.sessid)
             const id=uuidV4()
+            if(process.env.MODE==='dev')console.log(`Uploading ${id}`)
             file.mv('./data/' + id + path.extname(file.name))
             files.files[user.user].files.push({
                 name: file.name,
