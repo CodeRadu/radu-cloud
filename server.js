@@ -143,4 +143,4 @@ app.get('/delete', (req, res)=>{
     }
 })
 
-app.listen(80, ()=>console.log(`Running in ${process.env.MODE} mode`))
+app.listen(process.env.PORT, ()=>console.log(`Running in ${process.env.MODE} mode`))
