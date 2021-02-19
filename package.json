@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "cross-env MODE=dev nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "fix": "node fix.js"
   },
   "keywords": [],
   "author": "",
