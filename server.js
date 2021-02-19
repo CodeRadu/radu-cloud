@@ -55,7 +55,7 @@ app.get('/user/register', async (req, res)=>{
     const pass=req.query.pass
     if(email==null || pass==null)res.status(403)
     else {
-        if(users[email]==null){
+        if(users.users[email]==null){
             users.users[email]={
                 pass: pass,
                 files: email
