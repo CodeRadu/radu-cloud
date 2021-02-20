@@ -6,10 +6,10 @@ const filter=require('filter-files')
 const {v4:uuidV4}=require('uuid')
 const path=require('path')
 const fileUpload=require('express-fileupload')
-dotenv.config({path: './config/conf.env'})
+dotenv.config({path: './conf.env'})
 if(!existsSync('./data/users.json'))writeFileSync('./data/users.json', '{"users": {}, "sessid": []}')
 if(!existsSync('./data/files.json'))writeFileSync('./data/files.json', '{"files":{}}')
-if(!existsSync('./config/conf.env'))writeFileSync('./config/conf.env', 'MODE=production\nPORT=80\nSTRIPE=disabled\nSTRIPE_PUBLISHABLE_KEY=yourkeyhere\nSKU=yourskuhere')
+if(!existsSync('./conf.env'))writeFileSync('./conf.env', 'MODE=production\nPORT=80\nSTRIPE=disabled\nSTRIPE_PUBLISHABLE_KEY=yourkeyhere\nSKU=yourskuhere')
 if(!existsSync('./data/uploads'))mkdirSync('./data/uploads')
 let users={users: {}, sessid: []}
 let files={files: {}}
