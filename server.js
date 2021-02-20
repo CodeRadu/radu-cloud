@@ -1,7 +1,7 @@
 const express=require('express')
 const app=express()
 const dotenv=require('dotenv')
-const {readFileSync, writeFileSync, readFile, writeFile, unlink, existsSync}=require('fs')
+const {readFileSync, writeFileSync, readFile, writeFile, unlink, existsSync, mkdirSync}=require('fs')
 const filter=require('filter-files')
 const {v4:uuidV4}=require('uuid')
 const path=require('path')
@@ -9,6 +9,7 @@ const fileUpload=require('express-fileupload')
 dotenv.config({path: './config/conf.env'})
 if(!existsSync('./data/users.json'))writeFileSync('./data/users.json', '{"users": {}, "sessid": []}')
 if(!existsSync('./data/files.json'))writeFileSync('./data/files.json', '{"files":{}}')
+if(!existsSync('./data/uploads'))mkdirSync('./data/uploads')
 let users={users: {}, sessid: []}
 let files={files: {}}
 users=JSON.parse(readFileSync('./data/users.json', 'utf8'))
@@ -95,7 +96,7 @@ app.get('/user/check', (req, res)=>{
     if(find)res.send('ok')
     else res.send('error')
 })
-
+//TODO: Track file sizes
 app.post('/upload', (req, res)=>{
     try {
         if(!req.files || !req.query.sessid){
@@ -106,7 +107,7 @@ app.post('/upload', (req, res)=>{
             const user=users.sessid.find(sess=>sess.sessid==req.query.sessid)
             const id=uuidV4()
             if(process.env.MODE==='dev')console.log(`Uploading ${id}`)
-            file.mv('./data/' + id + path.extname(file.name))
+            file.mv('./data/uploads/' + id + path.extname(file.name))
             files.files[user.user].files.push({
                 name: file.name,
                 id: id
@@ -136,7 +137,7 @@ app.get('/delete', (req, res)=>{
         if(find){
             const file=files.files[find.user].files.findIndex(filee=>filee.id==req.query.id)
             const id=file.id
-            const fille=filter.sync(`data`)
+            const fille=filter.sync(`data/uploads`)
             const fil=fille.find(str=>str.includes(req.query.id))
             unlink(fil, ()=>{})
             delete files.files[find.user].files[file]
