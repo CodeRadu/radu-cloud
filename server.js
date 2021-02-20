@@ -9,6 +9,7 @@ const fileUpload=require('express-fileupload')
 dotenv.config({path: './config/conf.env'})
 if(!existsSync('./data/users.json'))writeFileSync('./data/users.json', '{"users": {}, "sessid": []}')
 if(!existsSync('./data/files.json'))writeFileSync('./data/files.json', '{"files":{}}')
+if(!existsSync('./config/conf.env'))writeFileSync('./config/conf.env', 'MODE=production\nPORT=80\nSTRIPE=disabled\nSTRIPE_PUBLISHABLE_KEY=yourkeyhere\nSKU=yourskuhere')
 if(!existsSync('./data/uploads'))mkdirSync('./data/uploads')
 let users={users: {}, sessid: []}
 let files={files: {}}
@@ -120,6 +121,21 @@ app.post('/upload', (req, res)=>{
     }
 })
 
+app.get('/store', (req, res)=>{
+    const sessid=req.query.sessid
+    const find=users.sessid.find(id=>id.sessid==sessid)
+    if(!find){
+        res.redirect('/login')
+        return
+    }
+    if(process.env.STRIPE==='enabled'){
+        res.render('store', {sessid: sessid, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY, sku: process.env.SKU})
+    }
+    else {
+        res.send('Store is disabled on this website')
+    }
+})
+
 app.get('/download', (req, res)=>{
     if(req.query.id){
         const file=filter.sync(`data`)
@@ -149,4 +165,4 @@ app.get('/delete', (req, res)=>{
     }
 })
 
-app.listen(process.env.PORT, ()=>console.log(`Running in ${process.env.MODE} mode`))
+app.listen(process.env.PORT || 80, ()=>console.log(`Running in ${process.env.MODE || 'production'} mode`))

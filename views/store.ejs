@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radu Cloud</title>
+    <title>Store - Radu Cloud</title>
     <link rel="stylesheet" href="/materialize/css/materialize.min.css">
     <link rel="manifest" href="/manifest.json">
+    <script>
+        const publishableKey="<%=publishableKey%>"
+        const sku="<%=sku%>"
+    </script>
+    <script src="https://js.stripe.com/v3/"></script>
     <link rel="apple-touch-startup-image" href="public/icons/apple-splash-2048-2732.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
     <link rel="apple-touch-startup-image" href="public/icons/apple-splash-2732-2048.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
     <link rel="apple-touch-startup-image" href="public/icons/apple-splash-1668-2388.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
@@ -38,30 +43,14 @@
             navigator.serviceWorker.register('/sw.js')
         }
     </script>
-    <script src="/js/dashboard.js" defer></script>
+    <script src="/js/store.js" defer></script>
 </head>
 <body>
     <div class="container">
         <h3>Radu Cloud</h3>
-        <div id="msg" style="color: red;"></div>
-        <button class="waves-effect waves-light btn" onclick="logout()">Logout</button>
-        <button class="waves-effect waves-light btn" onclick="window.location='/store?sessid=<%=sessid%>'">
-            Store
-        </button>
-        <form action="/upload?sessid=<%=sessid%>" id="upform" method="POST" enctype="multipart/form-data">
-            <label for="file">File</label>
-            <input type="file" name="file" id="file" class="waves-effect waves-light btn" required>
-            <button type="submit" class="waves-effect waves-light btn" id="ubutton">Upload</button>
-        </form>
-        <br>
-        Files: <div class="files">
-            <% files.forEach(file => { %>
-                <div class="card">
-                    <h5><%=file.name%></h5>
-                    <button onclick="download('<%=file.id%>')" class="waves-effect waves-light btn">Download</button>
-                    <button onclick="deleteF('<%=file.id%>')" class="waves-effect waves-light btn">Delete</button>
-                </div>
-            <% }) %>
+        <div class="card">
+            <h4>5 GB storage</h4>
+            <button class="waves-effect waves-light btn" onclick="startCheckout()">Buy $6</button>
         </div>
     </div>
 </body>
