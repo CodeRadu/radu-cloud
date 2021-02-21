@@ -7,9 +7,12 @@ const {v4:uuidV4}=require('uuid')
 const path=require('path')
 const fileUpload=require('express-fileupload')
 dotenv.config({path: './conf.env'})
+const stripePublishableKey=process.env.STRIPE_PUBLISHABLE_KEY
+const stripeSecretKey=process.env.STRIPE_SECRET_KEY
+const stripe=require('stripe')(stripeSecretKey || '')
 if(!existsSync('./data/users.json'))writeFileSync('./data/users.json', '{"users": {}, "sessid": []}')
 if(!existsSync('./data/files.json'))writeFileSync('./data/files.json', '{"files":{}}')
-if(!existsSync('./conf.env'))writeFileSync('./conf.env', 'MODE=production\nPORT=80\nSTRIPE=disabled\nSTRIPE_PUBLISHABLE_KEY=yourkeyhere\nSKU=yourskuhere')
+if(!existsSync('./conf.env'))writeFileSync('./conf.env', 'MODE=production\nPORT=80\nSTRIPE=disabled\nSTRIPE_PUBLISHABLE_KEY=yourkeyhere\nSTRIPE_SECRET_KEY=yourkeyhere')
 if(!existsSync('./data/uploads'))mkdirSync('./data/uploads')
 let users={users: {}, sessid: []}
 let files={files: {}}
@@ -22,6 +25,7 @@ app.use(express.static('public'))
 app.use(fileUpload({
     createParentPath: true
 }))
+app.use(express.json())
 app.set('view engine', 'ejs')
 
 app.get('/', (req, res)=>{
@@ -34,6 +38,27 @@ app.get('/register', (req, res)=>{
 
 app.get('/login', (req, res)=>{
     res.render('login')
+})
+
+app.post('/purchase', (req, res)=>{
+    const sessid=req.body.sessid
+    const find=users.sessid.find(id=>id.sessid==sessid)
+    if(!find){
+        res.status(403).json({message: 'Payment failed. You were not charged'})
+        return
+    }
+    const user=find.user
+    stripe.charges.create({
+        amount: 499,
+        source: req.body.stripeTokenId,
+        currency: 'usd'
+    }).then(()=>{
+        res.json({message: 'Success. Added 5 GB to your quota'})
+        users.users[user].quota+=5
+        writeFile('./data/users.json', JSON.stringify(users), ()=>{})
+    }).catch(()=>{
+        res.status(500).json({message: 'Payment failed. You were not charged'})
+    })
 })
 
 app.get('/dashboard', (req, res)=>{
@@ -52,8 +77,10 @@ app.get('/dashboard', (req, res)=>{
         files.files[user]={files: []}
         writeFile('./data/files.json', JSON.stringify(files), ()=>{})
     }
+    const usedStorage=users.users[user].usedStorage
+    const quota=users.users[user].quota
     const userFiles=files.files[user]
-    res.render('dashboard', {files: userFiles.files, sessid: sessid})
+    res.render('dashboard', {files: userFiles.files, sessid, usedStorage, quota})
 })
 
 app.get('/user/register', async (req, res)=>{
@@ -64,7 +91,9 @@ app.get('/user/register', async (req, res)=>{
         if(users.users[email]==null){
             users.users[email]={
                 pass: pass,
-                files: email
+                files: email,
+                quota: 5,
+                usedStorage: 0
             }
             files.files[email]={
                 files: []
@@ -97,7 +126,7 @@ app.get('/user/check', (req, res)=>{
     if(find)res.send('ok')
     else res.send('error')
 })
-//TODO: Track file sizes
+
 app.post('/upload', (req, res)=>{
     try {
         if(!req.files || !req.query.sessid){
@@ -107,14 +136,21 @@ app.post('/upload', (req, res)=>{
             let file=req.files.file
             const user=users.sessid.find(sess=>sess.sessid==req.query.sessid)
             const id=uuidV4()
-            if(process.env.MODE==='dev')console.log(`Uploading ${id}`)
-            file.mv('./data/uploads/' + id + path.extname(file.name))
-            files.files[user.user].files.push({
-                name: file.name,
-                id: id
-            })
-            res.redirect(`/dashboard?sessid=${req.query.sessid}`)
-            writeFile('./data/files.json', JSON.stringify(files), ()=>{})
+            const quota=users.users[user.user].quota
+            const usedStorage=users.users[user.user].usedStorage
+            if(usedStorage+file.size/1024/1024/1024<=quota){
+                users.users[user.user].usedStorage+=file.size/1024/1024/1024
+                file.mv('./data/uploads/' + id + path.extname(file.name))
+                files.files[user.user].files.push({
+                    name: file.name,
+                    id: id,
+                    size: file.size
+                })
+                res.redirect(`/dashboard?sessid=${req.query.sessid}`)
+                writeFile('./data/files.json', JSON.stringify(files), ()=>{})
+                writeFile('./data/users.json', JSON.stringify(users), ()=>{})
+            }
+            else res.send('This file exceeds your quota')
         }
     } catch (err) {
         console.log(err)
@@ -155,11 +191,13 @@ app.get('/delete', (req, res)=>{
             const id=file.id
             const fille=filter.sync(`data/uploads`)
             const fil=fille.find(str=>str.includes(req.query.id))
+            users.users[find.user].usedStorage-=files.files[find.user].files[file].size/1024/1024/1024
             unlink(fil, ()=>{})
             delete files.files[find.user].files[file]
             const filess=files.files[find.user].files.filter(x=>x!=null)
             files.files[find.user].files=filess
             writeFile('./data/files.json', JSON.stringify(files), ()=>{})
+            writeFile('./data/users.json', JSON.stringify(users), ()=>{})
             res.send('ok')
         }
     }

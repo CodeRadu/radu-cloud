@@ -1,11 +1,28 @@
-let stripe=Stripe(publishableKey)
-async function startCheckout(){
-    const {error}=await stripe.redirectToCheckout({
-        items: [{sku, quantity: 1}],
-        successUrl: 'http://localhost/success',
-        cancelUrl: 'http://localhost/canceled'
-    })
-    if(error){
-        alert('Something went wrong')
+let stripeHandler=StripeCheckout.configure({
+    key: publishableKey,
+    locale: 'en',
+    token: (token)=>{
+        fetch('/purchase', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                stripeTokenId: token.id,
+                sessid: localStorage.getItem('rcloud/sessid')
+            })
+        }).then(res=>{
+            return res.json()
+        }).then(data=>{
+            alert(data.message)
+        }).catch(err=>{
+            console.error(err)
+        })
     }
+})
+function purchase(){
+    stripeHandler.open({
+        amount: 499
+    })
 }

@@ -11,7 +11,7 @@
         const publishableKey="<%=publishableKey%>"
         const sku="<%=sku%>"
     </script>
-    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://checkout.stripe.com/checkout.js" defer></script>
     <link rel="apple-touch-startup-image" href="public/icons/apple-splash-2048-2732.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
     <link rel="apple-touch-startup-image" href="public/icons/apple-splash-2732-2048.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
     <link rel="apple-touch-startup-image" href="public/icons/apple-splash-1668-2388.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
@@ -50,7 +50,7 @@
         <h3>Radu Cloud</h3>
         <div class="card">
             <h4>5 GB storage</h4>
-            <button class="waves-effect waves-light btn" onclick="startCheckout()">Buy $6</button>
+            <button class="waves-effect waves-light btn" onclick="purchase()">Buy $4.99</button>
         </div>
     </div>
 </body>

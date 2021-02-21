@@ -54,10 +54,14 @@
             <button type="submit" class="waves-effect waves-light btn" id="ubutton">Upload</button>
         </form>
         <br>
+        <%=(usedStorage).toFixed(2)%> GB / <%=quota%> GB
+        <br>
         Files: <div class="files">
             <% files.forEach(file => { %>
                 <div class="card">
                     <h5><%=file.name%></h5>
+                    <%=(file.size/1024/1024).toFixed(2)%> MB
+                    <br>
                     <button onclick="download('<%=file.id%>')" class="waves-effect waves-light btn">Download</button>
                     <button onclick="deleteF('<%=file.id%>')" class="waves-effect waves-light btn">Delete</button>
                 </div>
